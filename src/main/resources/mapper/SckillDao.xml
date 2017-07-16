@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.seckill.dao.SckillDao">
+
+    <resultMap id="BaseMap" type="org.seckill.entity.Seckill">
+        <id column="seckill_id" property="seckillId"/>
+        <result column="name" property="name"/>
+        <result column="number" property="number"/>
+        <result column="start_time" property="startTime"/>
+        <result column="end_time" property="endTime"/>
+        <result column="create_time" property="createTime"/>
+    </resultMap>
+    <sql id="baseSql">
+        seckill_id, name, number, start_time, end_time, create_time
+    </sql>
+    <update id="reduceNumber" parameterType="map">
+        UPDATE
+            sckill
+        SET
+            number = number - 1
+        WHERE
+            seckill_id = #{seckillId}
+            AND start_time <![CDATA[<=]]> #{createTime}
+            AND end_time >= #{createTime}
+            AND number > 0
+    </update>
+
+    <select id="queryById" resultMap="BaseMap" parameterType="long">
+        SELECT
+        <include refid="baseSql"/>
+        FROM sckill
+        WHERE seckill_id=#{seckillId}
+    </select>
+
+    <select id="queryAll" resultMap="BaseMap">
+        SELECT
+        <include refid="baseSql"/>
+        FROM sckill
+        ORDER BY
+        create_time DESC
+    </select>
+
+
+</mapper>
