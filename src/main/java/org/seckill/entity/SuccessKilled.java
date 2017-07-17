@@ -3,8 +3,6 @@ package org.seckill.entity;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import org.jboss.netty.channel.ChannelHandler;
-
 import java.util.Date;
 
 /**

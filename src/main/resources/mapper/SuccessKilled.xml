@@ -25,15 +25,17 @@
     <insert id="insertSuccessKilled" parameterType="map">
         /*当出现主键冲突时,忽略错误,返回0*/
         INSERT IGNORE INTO
-            success_killed (seckill_id, user_phone)
-        VALUES (#{seckillId}, #{userPhone})
+            success_killed (seckill_id, user_phone, state)
+        VALUES (#{seckillId}, #{userPhone}, 0)
     </insert>
     <select id="queryByIdWithSckill" resultMap="BaseMap" parameterType="long">
         SELECT
-        <include refid="baseSql"/>,sckill.*
-        FROM success_killed,sckill
+            success_killed.*,
+            sckill.*
+        FROM success_killed, sckill
         WHERE sckill.seckill_id = success_killed.seckill_id
-        AND success_killed.seckill_id = #{seckillId}
+              AND success_killed.seckill_id = #{seckillId}
+              AND success_killed.user_phone = #{userPhone}
     </select>
 
 
