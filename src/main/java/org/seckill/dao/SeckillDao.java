@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * Created by walter on 2017/7/16.
  */
-public interface SckillDao {
+public interface SeckillDao {
 
     /**
      * 减少库存
