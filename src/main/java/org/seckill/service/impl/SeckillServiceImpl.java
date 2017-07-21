@@ -71,7 +71,9 @@ public class SeckillServiceImpl implements SeckillService {
      *  3：不是所有的方法都需要事务，如只有一条修改操作或者只读操作不需要事务
      */
     public SeckillExcution excuteSeckill(long seckillId, long userPhone, String md5) throws SeckillExcption, RepeatKillException, SeckillCloseException {
-
+        System.out.println(this.getMd5(seckillId).equals(md5));
+        System.out.println("this.getMd5(seckillId)"+this.getMd5(seckillId));
+        System.out.println("md5"+md5);
         if (this.getMd5(seckillId).equals(md5)) {
             try {
                 int rowCount = seckillDao.reduceNumber(seckillId, new Date());
