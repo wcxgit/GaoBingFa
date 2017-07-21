@@ -2,6 +2,7 @@ package org.seckill.service.impl;
 
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import org.seckill.dao.RedisDao;
 import org.seckill.dao.SeckillDao;
 import org.seckill.dao.SuccessKilledDao;
 import org.seckill.dto.Exposer;
@@ -33,6 +34,8 @@ public class SeckillServiceImpl implements SeckillService {
     private SeckillDao seckillDao;
     @Resource
     private SuccessKilledDao successKilledDao;
+    @Resource
+    private RedisDao redisDao;
 
     private final String slat = "ewerjlFJAL34534#%￥%&&*//-*/+;'./";
 
@@ -47,9 +50,18 @@ public class SeckillServiceImpl implements SeckillService {
     }
 
     public Exposer exportSeckillUrl(long seckillId) {
-        Seckill seckill = seckillDao.queryById(seckillId);
+        Seckill seckill = redisDao.getRedis(seckillId);
         if (seckill == null) {
-            return new Exposer(false, seckillId);
+            //如果未查询到数据
+            //从数据库查找
+            seckill = seckillDao.queryById(seckillId);
+            if (seckill == null) {
+                //如果从数据库未查询到数据，则说明无该数据
+                return new Exposer(false, seckillId);
+            } else {
+                //将数据写入到缓存数据库中
+                redisDao.putRedis(seckill);
+            }
         }
         long startTime = seckill.getStartTime().getTime();
         long endTime = seckill.getEndTime().getTime();
@@ -72,17 +84,17 @@ public class SeckillServiceImpl implements SeckillService {
      */
     public SeckillExcution excuteSeckill(long seckillId, long userPhone, String md5) throws SeckillExcption, RepeatKillException, SeckillCloseException {
         System.out.println(this.getMd5(seckillId).equals(md5));
-        System.out.println("this.getMd5(seckillId)"+this.getMd5(seckillId));
-        System.out.println("md5"+md5);
+        System.out.println("this.getMd5(seckillId)" + this.getMd5(seckillId));
+        System.out.println("md5" + md5);
         if (this.getMd5(seckillId).equals(md5)) {
             try {
-                int rowCount = seckillDao.reduceNumber(seckillId, new Date());
+                int rowCount = successKilledDao.insertSuccessKilled(seckillId, userPhone);
                 if (rowCount == 0) {
-                    throw new SeckillCloseException(SeckillStateEnum.END.getStateInfo());
+                    throw new RepeatKillException(SeckillStateEnum.REPEAT_SKILL.getStateInfo());
                 } else {
-                    rowCount = successKilledDao.insertSuccessKilled(seckillId, userPhone);
+                    rowCount = seckillDao.reduceNumber(seckillId, new Date());
                     if (rowCount == 0) {
-                        throw new RepeatKillException(SeckillStateEnum.REPEAT_SKILL.getStateInfo());
+                        throw new SeckillCloseException(SeckillStateEnum.END.getStateInfo());
                     } else {
                         SuccessKilled successKilled = successKilledDao.queryByIdWithSckill(seckillId, userPhone);
                         return new SeckillExcution(seckillId, SeckillStateEnum.SUCCESS, successKilled);
